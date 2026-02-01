@@ -49,7 +49,11 @@ router.post("/login", async (req, res) => {
 // CHECK EMAIL (while typing)
 router.get("/check-email/:email", async (req, res) => {
   try {
-    const student = await Student.findOne({ email: req.params.email });
+    const emailInput = req.params.email;
+    // Search for any email containing the typed characters
+    const student = await Student.findOne({ 
+      email: { $regex: emailInput, $options: "i" } 
+    });
     res.json({ exists: !!student });
   } catch (err) {
     res.status(500).json({ message: "Error checking email" });
