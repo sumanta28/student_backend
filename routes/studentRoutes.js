@@ -36,4 +36,30 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
+router.post("/signup", async (req, res) => {
+  try {
+    const { email, password, ...rest } = req.body;
+
+    const existingUser = await Student.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const student = new Student({
+      ...rest,
+      email,
+      password: hashedPassword
+    });
+
+    await student.save();
+    res.status(201).json({ message: "Signup successful" });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 module.exports = router;

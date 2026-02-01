@@ -46,4 +46,15 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// CHECK EMAIL (while typing)
+router.get("/check-email/:email", async (req, res) => {
+  try {
+    const student = await Student.findOne({ email: req.params.email });
+    res.json({ exists: !!student });
+  } catch (err) {
+    res.status(500).json({ message: "Error checking email" });
+  }
+});
+
+
 module.exports = router;
