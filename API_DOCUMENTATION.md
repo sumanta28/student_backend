@@ -35,7 +35,6 @@ Create a new student account.
 {
   "firstName": "John",
   "lastName": "Doe",
-  "fullName": "John Doe",
   "age": 20,
   "gender": "Male",
   "subject": "Computer Science",
@@ -50,7 +49,7 @@ Create a new student account.
   "message": "Signup successful"
 }
 ```
-**Status Code:** `200`
+**Status Code:** `201 Created`
 
 **Response (Error - Email already exists):**
 ```json
@@ -120,12 +119,12 @@ Authenticate a student and receive a JWT token.
 ---
 
 #### 3. Check Email Availability
-**GET** `/api/auth/check-email/:email`
+**GET** `/api/auth/check-email?email=john@example.com`
 
 Check if an email exists in the database (useful for real-time validation).
 
 **Parameters:**
-- `email` (string, required) - Email to check
+- `email` (string, required, query parameter) - Email to check
 
 **Response (Email exists):**
 ```json
@@ -193,12 +192,61 @@ Retrieve all students from the database.
 
 ---
 
-#### 2. Update Student
+#### 2. Get Single Student
+**GET** `/api/students/:id`
+
+Retrieve a specific student by ID.
+
+**Authentication:** Required (JWT Token)
+
+**Parameters:**
+- `id` (string, required) - MongoDB ObjectId of the student
+
+**Response (Success):**
+```json
+{
+  "_id": "507f1f77bcf86cd799439011",
+  "firstName": "John",
+  "lastName": "Doe",
+  "fullName": "John Doe",
+  "age": 20,
+  "gender": "Male",
+  "subject": "Computer Science",
+  "email": "john@example.com",
+  "image": "path/to/image.jpg",
+  "createdAt": "2024-02-04T12:00:00.000Z",
+  "updatedAt": "2024-02-04T12:00:00.000Z"
+}
+```
+**Status Code:** `200`
+
+**Response (Error - Student not found):**
+```json
+{
+  "message": "Student not found"
+}
+```
+**Status Code:** `404`
+
+**Response (Error):**
+```json
+{
+  "message": "Failed to fetch student",
+  "error": "Error message here"
+}
+```
+**Status Code:** `500`
+
+---
+
+#### 3. Update Student
 **PUT** `/api/students/:id`
 
 Update a student's information.
 
 **Authentication:** Required (JWT Token)
+
+**Authorization:** User can only update their own profile
 
 **Parameters:**
 - `id` (string, required) - MongoDB ObjectId of the student
@@ -234,6 +282,14 @@ Update a student's information.
 ```
 **Status Code:** `200`
 
+**Response (Error - Unauthorized):**
+```json
+{
+  "message": "Unauthorized - Can only update own profile"
+}
+```
+**Status Code:** `403`
+
 **Response (Error - Student not found):**
 ```json
 {
@@ -253,12 +309,14 @@ Update a student's information.
 
 ---
 
-#### 3. Delete Student
+#### 4. Delete Student
 **DELETE** `/api/students/:id`
 
 Delete a student from the database.
 
 **Authentication:** Required (JWT Token)
+
+**Authorization:** User can only delete their own profile
 
 **Parameters:**
 - `id` (string, required) - MongoDB ObjectId of the student
@@ -270,6 +328,14 @@ Delete a student from the database.
 }
 ```
 **Status Code:** `200`
+
+**Response (Error - Unauthorized):**
+```json
+{
+  "message": "Unauthorized - Can only delete own profile"
+}
+```
+**Status Code:** `403`
 
 **Response (Error - Student not found):**
 ```json
@@ -372,7 +438,6 @@ curl -X POST http://localhost:5000/api/auth/signup \
   -d '{
     "firstName": "John",
     "lastName": "Doe",
-    "fullName": "John Doe",
     "age": 20,
     "gender": "Male",
     "subject": "Computer Science",
@@ -397,7 +462,13 @@ curl -X GET http://localhost:5000/api/students \
   -H "Authorization: Bearer TOKEN"
 ```
 
-### 4. Update Student
+### 4. Get Single Student
+```bash
+curl -X GET http://localhost:5000/api/students/507f1f77bcf86cd799439011 \
+  -H "Authorization: Bearer TOKEN"
+```
+
+### 5. Update Student
 ```bash
 curl -X PUT http://localhost:5000/api/students/507f1f77bcf86cd799439011 \
   -H "Content-Type: application/json" \
@@ -408,7 +479,7 @@ curl -X PUT http://localhost:5000/api/students/507f1f77bcf86cd799439011 \
   }'
 ```
 
-### 5. Delete Student
+### 6. Delete Student
 ```bash
 curl -X DELETE http://localhost:5000/api/students/507f1f77bcf86cd799439011 \
   -H "Authorization: Bearer TOKEN"

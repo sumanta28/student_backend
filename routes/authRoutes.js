@@ -9,7 +9,7 @@ const router = express.Router();
 // SIGNUP
 router.post("/signup", async (req, res) => {
   try {
-    const { email, password, ...rest } = req.body;
+    const { email, password, firstName, lastName, ...rest } = req.body;
 
     const existing = await Student.findOne({ email });
     if (existing) {
@@ -17,15 +17,19 @@ router.post("/signup", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const fullName = `${firstName} ${lastName}`;
 
     const student = new Student({
       ...rest,
+      firstName,
+      lastName,
+      fullName,
       email: email.toLowerCase(),
       password: hashedPassword,
     });
 
     await student.save();
-    res.json({ message: "Signup successful" });
+    res.status(201).json({ message: "Signup successful" });
   } catch (err) {
     res.status(500).json({ message: "Signup failed", error: err.message });
   }
@@ -53,9 +57,13 @@ router.post("/login", async (req, res) => {
 });
 
 // CHECK EMAIL (while typing)
-router.get("/check-email/:email", async (req, res) => {
+router.get("/check-email", async (req, res) => {
   try {
-    const email = req.params.email.toLowerCase();
+    const email = req.query.email?.toLowerCase();
+    
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
     const student = await Student.findOne({ email });
 
