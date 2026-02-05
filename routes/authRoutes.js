@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Student = require("../models/Student");
+const auth = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -47,7 +48,7 @@ router.post("/login", async (req, res) => {
 });
 
 // CHECK EMAIL (while typing)
-router.get("/check-email/:email", async (req, res) => {
+router.get("/check-email/:email", auth, async (req, res) => {
   try {
     const emailInput = req.params.email;
     // Search for any email containing the typed characters
