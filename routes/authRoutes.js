@@ -11,12 +11,17 @@ router.post("/signup", async (req, res) => {
   try {
     const { email, password, ...rest } = req.body;
 
+    const existing = await Student.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const student = new Student({
       ...rest,
-      email,
-      password: hashedPassword
+      email: email.toLowerCase(),
+      password: hashedPassword,
     });
 
     await student.save();
@@ -48,13 +53,12 @@ router.post("/login", async (req, res) => {
 });
 
 // CHECK EMAIL (while typing)
-router.get("/check-email/:email", auth, async (req, res) => {
+router.get("/check-email/:email", async (req, res) => {
   try {
-    const emailInput = req.params.email;
-    // Search for any email containing the typed characters
-    const student = await Student.findOne({ 
-      email: { $regex: emailInput, $options: "i" } 
-    });
+    const email = req.params.email.toLowerCase();
+
+    const student = await Student.findOne({ email });
+
     res.json({ exists: !!student });
   } catch (err) {
     res.status(500).json({ message: "Error checking email" });
