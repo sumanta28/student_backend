@@ -52,6 +52,14 @@ Create a new student account.
 ```
 **Status Code:** `200`
 
+**Response (Error - Email already exists):**
+```json
+{
+  "message": "Email already exists"
+}
+```
+**Status Code:** `400`
+
 **Response (Error):**
 ```json
 {
