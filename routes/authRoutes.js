@@ -48,12 +48,12 @@ router.post("/login", async (req, res) => {
 });
 
 // CHECK EMAIL (while typing)
-// CHECK EMAIL (PUBLIC)
-router.get("/check-email/:email", async (req, res) => {
+router.get("/check-email/:email", auth, async (req, res) => {
   try {
     const emailInput = req.params.email;
-    const student = await Student.findOne({
-      email: { $regex: emailInput, $options: "i" }
+    // Search for any email containing the typed characters
+    const student = await Student.findOne({ 
+      email: { $regex: emailInput, $options: "i" } 
     });
     res.json({ exists: !!student });
   } catch (err) {
