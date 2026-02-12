@@ -10,7 +10,9 @@ router.get("/", auth, async (req, res) => {
     const students = await Student.find();
     res.json(students);
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch students", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch students", error: err.message });
   }
 });
 
@@ -21,19 +23,27 @@ router.get("/:id", auth, async (req, res) => {
     if (!student) return res.status(404).json({ message: "Student not found" });
     res.json(student);
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch student", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch student", error: err.message });
   }
 });
 
 // UPDATE
 router.put("/:id", auth, async (req, res) => {
   try {
+    console.log("Token user:", req.user.id); // 👈 ADD HERE
+    console.log("URL id:", req.params.id); // 👈 ADD HERE
     // Authorization: Only allow user to update their own profile
     if (req.user.id !== req.params.id) {
-      return res.status(403).json({ message: "Unauthorized - Can only update own profile" });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized - Can only update own profile" });
     }
-    
-    const updated = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+    const updated = await Student.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
     if (!updated) return res.status(404).json({ message: "Student not found" });
     res.json({ message: "Updated", data: updated });
   } catch (err) {
@@ -46,9 +56,11 @@ router.delete("/:id", auth, async (req, res) => {
   try {
     // Authorization: Only allow user to delete their own profile
     if (req.user.id !== req.params.id) {
-      return res.status(403).json({ message: "Unauthorized - Can only delete own profile" });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized - Can only delete own profile" });
     }
-    
+
     const deleted = await Student.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: "Student not found" });
     res.json({ message: "Deleted" });
@@ -56,6 +68,5 @@ router.delete("/:id", auth, async (req, res) => {
     res.status(500).json({ message: "Delete failed", error: err.message });
   }
 });
-
 
 module.exports = router;
