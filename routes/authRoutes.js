@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Student = require("../models/Student");
+const Counter = require("../models/Counter");
 const auth = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -11,7 +12,7 @@ router.post("/signup", async (req, res) => {
   try {
     const { email, password, firstName, lastName, ...rest } = req.body;
 
-    const existing = await Student.findOne({ email });
+    const existing = await Student.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(400).json({ message: "Email already exists" });
     }
@@ -19,8 +20,16 @@ router.post("/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const fullName = `${firstName} ${lastName}`;
 
+    // get next sequential studentId
+    const counter = await Counter.findOneAndUpdate(
+      { _id: "studentId" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+
     const student = new Student({
       ...rest,
+      studentId: counter.seq,
       firstName,
       lastName,
       fullName,
@@ -29,7 +38,7 @@ router.post("/signup", async (req, res) => {
     });
 
     await student.save();
-    res.status(201).json({ message: "Signup successful" });
+    res.status(201).json({ message: "Signup successful", studentId: student.studentId });
   } catch (err) {
     res.status(500).json({ message: "Signup failed", error: err.message });
   }
