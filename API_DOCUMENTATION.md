@@ -46,7 +46,8 @@ Create a new student account.
 **Response (Success):**
 ```json
 {
-  "message": "Signup successful"
+  "message": "Signup successful",
+  "studentId": 1
 }
 ```
 **Status Code:** `201 Created`
@@ -166,6 +167,7 @@ Retrieve all students from the database.
 [
   {
     "_id": "507f1f77bcf86cd799439011",
+    "studentId": 1,
     "firstName": "John",
     "lastName": "Doe",
     "fullName": "John Doe",
@@ -206,6 +208,7 @@ Retrieve a specific student by ID.
 ```json
 {
   "_id": "507f1f77bcf86cd799439011",
+  "studentId": 1,
   "firstName": "John",
   "lastName": "Doe",
   "fullName": "John Doe",
@@ -361,6 +364,7 @@ Delete a student from the database.
 ### Student Schema
 ```javascript
 {
+  studentId: Number, // sequential numeric id assigned at signup (1,2,3...)
   firstName: String,
   lastName: String,
   fullName: String,
@@ -374,6 +378,21 @@ Delete a student from the database.
   updatedAt: Date (auto-generated)
 }
 ```
+
+---
+
+### Counter Model
+
+The application uses a simple `Counter` collection to provide auto-incrementing numeric `studentId` values. When a user signs up the server atomically increments the `studentId` counter and assigns the resulting number to the new student. This ensures sequential IDs like `1`, `2`, `3`.
+
+Server-side notes:
+- Model: `Counter` with schema `{ _id: String, seq: Number }`.
+- Signup flow: `findOneAndUpdate({ _id: "studentId" }, { $inc: { seq: 1 } }, { new: true, upsert: true })` then store `counter.seq` as `studentId` on the `Student` document.
+
+Frontend usage:
+- Use `student.studentId` in lists and routes (fall back to `student._id` if missing).
+- Example list item: `ID: {student.studentId ?? student._id}`
+
 
 ---
 
